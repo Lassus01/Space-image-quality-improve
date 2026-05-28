@@ -1,0 +1,226 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="EDSR System Architecture" id="system-arch">
+    <mxGraphModel dx="1398" dy="792" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1" value="Архитектура системы Super-Resolution на базе EDSR" vertex="1">
+          <mxGeometry height="40" width="600" x="284.5" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="layer1-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#01579B;strokeWidth=2;dashed=1;" value="" vertex="1">
+          <mxGeometry height="120" width="1090" x="40" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="layer1-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" value="Слой 1: Подготовка данных и деградация" vertex="1">
+          <mxGeometry height="30" width="350" x="50" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dataset" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=11;" value="UC Merced Dataset&lt;br&gt;(21 класс × 100 изображений)" vertex="1">
+          <mxGeometry height="60" width="140" x="60" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="prepare-data" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;prepare_data.py&lt;/b&gt;&lt;br&gt;Data Degradation Module&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Bicubic downsampling&lt;br&gt;• Gaussian blur kernel&lt;br&gt;• Stochastic noise" vertex="1">
+          <mxGeometry height="70" width="180" x="240" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="fix-names" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#4A148C;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;fix_names.py&lt;/b&gt;&lt;br&gt;Dataset Manager&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Rename files (x2 suffix)&lt;br&gt;• Route to EDSR structure&lt;br&gt;• Validate pairs" vertex="1">
+          <mxGeometry height="70" width="180" x="460" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="div2k" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#E8F5E9;strokeColor=#1B5E20;fontSize=10;align=left;spacingLeft=10;" value="DIV2K Structure&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;HR: train_HR/&lt;br&gt;LR: train_LR_bicubic/X2/" vertex="1">
+          <mxGeometry height="70" width="160" x="680" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="images" parent="1" style="shape=folder;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;fontSize=10;" value="images/&lt;br&gt;agricultural/&lt;br&gt;airplane/&lt;br&gt;..." vertex="1">
+          <mxGeometry height="60" width="100" x="880" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow1-1" edge="1" parent="1" source="dataset" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#01579B;" target="prepare-data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow1-2" edge="1" parent="1" source="prepare-data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#01579B;" target="fix-names">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow1-3" edge="1" parent="1" source="fix-names" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#01579B;" target="div2k">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow1-4" edge="1" parent="1" source="images" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#01579B;dashed=1;" target="dataset">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="930" y="100" />
+              <mxPoint x="130" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="layer2-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#880E4F;strokeWidth=2;dashed=1;" value="" vertex="1">
+          <mxGeometry height="100" width="1090" x="40" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="layer2-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" value="Слой 2: Мост аппаратного ускорения" vertex="1">
+          <mxGeometry height="30" width="350" x="50" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="pytorch" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#0D47A1;fontSize=11;fontStyle=1" value="PyTorch 1.2.0&lt;br&gt;Tensor Operations" vertex="1">
+          <mxGeometry height="50" width="150" x="200" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="directml" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#B71C1C;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;torch-directml&lt;/b&gt;&lt;br&gt;Hardware Bridge&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• DirectML API&lt;br&gt;• Memory alignment&lt;br&gt;• .contiguous() patch" vertex="1">
+          <mxGeometry height="85" width="180" x="420" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="amd-gpu" parent="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#FF5252;strokeColor=#D32F2F;fontSize=11;fontStyle=1;fontColor=#FFFFFF;" value="AMD Radeon GPU&lt;br&gt;(Hardware Acceleration)" vertex="1">
+          <mxGeometry height="60" width="160" x="680" y="242.5" as="geometry" />
+        </mxCell>
+        <mxCell id="perf-note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2" value=" Ускорение вычислений&lt;br&gt;на графическом процессоре" vertex="1">
+          <mxGeometry height="50" width="180" x="900" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow2-1" edge="1" parent="1" source="pytorch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#B71C1C;" target="directml">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="272" />
+              <mxPoint x="370" y="272" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow2-2" edge="1" parent="1" source="directml" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#B71C1C;" target="amd-gpu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="layer3-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F8E9;strokeColor=#33691E;strokeWidth=2;dashed=1;" value="" vertex="1">
+          <mxGeometry height="180" width="1090" x="40" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="layer3-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" value="Слой 3: Ядро обучения (Training Engine)" vertex="1">
+          <mxGeometry height="30" width="350" x="50" y="345" as="geometry" />
+        </mxCell>
+        <mxCell id="main" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8EAF6;strokeColor=#1A237E;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;main.py&lt;/b&gt;&lt;br&gt;Entry Point&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Args parsing&lt;br&gt;• Checkpoint init&lt;br&gt;• Model loading" vertex="1">
+          <mxGeometry height="70" width="140" x="60" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="dataloader" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57F17;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;dataloader.py&lt;/b&gt;&lt;br&gt;Data Pipeline&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Batch loading&lt;br&gt;• Augmentation&lt;br&gt;• Scale selection" vertex="1">
+          <mxGeometry height="45" width="140" x="60" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="trainer" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#1B5E20;fontSize=10;align=left;spacingLeft=10;fontStyle=1" value="&lt;b&gt;trainer.py&lt;/b&gt;&lt;br&gt;Training Core&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Forward pass&lt;br&gt;• Loss calculation (L1)&lt;br&gt;• Backpropagation&lt;br&gt;• Gradient clipping&lt;br&gt;• .contiguous() optimization" vertex="1">
+          <mxGeometry height="125" width="180" x="240" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="edsr-model" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;fontSize=10;align=left;spacingLeft=10;fontStyle=1" value="&lt;b&gt;EDSR Model&lt;/b&gt;&lt;br&gt;Neural Network&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Residual blocks&lt;br&gt;• Skip connections&lt;br&gt;• Upsampling layer" vertex="1">
+          <mxGeometry height="125" width="160" x="460" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="loss" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;loss/__init__.py&lt;/b&gt;&lt;br&gt;Loss Function&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• L1 Loss (MAE)&lt;br&gt;• MSE (optional)&lt;br&gt;• VGG/GAN (optional)" vertex="1">
+          <mxGeometry height="125" width="160" x="660" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="optimizer" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1C4E9;strokeColor=#4A148C;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;Optimizer&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Adam/SGD&lt;br&gt;• Learning rate scheduler&lt;br&gt;• Gradient descent" vertex="1">
+          <mxGeometry height="125" width="150" x="860" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3-1" edge="1" parent="1" source="main" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#33691E;" target="trainer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3-2" edge="1" parent="1" source="dataloader" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#33691E;" target="trainer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3-3" edge="1" parent="1" source="trainer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#33691E;" target="edsr-model">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3-4" edge="1" parent="1" source="edsr-model" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#33691E;" target="loss">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3-5" edge="1" parent="1" source="loss" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#33691E;" target="optimizer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3-6" edge="1" parent="1" source="optimizer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#33691E;dashed=1;" target="edsr-model">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="935" y="530" />
+              <mxPoint x="540" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow3-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2" value="Weight Update" vertex="1">
+          <mxGeometry height="20" width="100" x="680" y="535" as="geometry" />
+        </mxCell>
+        <mxCell id="layer4-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;dashed=1;" value="" vertex="1">
+          <mxGeometry height="120" width="1090" x="40" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="layer4-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" value="Слой 4: Тестирование и визуализация (Inference &amp; Visualization)" vertex="1">
+          <mxGeometry height="30" width="500" x="50" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="test-module" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;trainer.test()&lt;/b&gt;&lt;br&gt;Inference Module&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Model evaluation&lt;br&gt;• SR generation&lt;br&gt;• Image quantization" vertex="1">
+          <mxGeometry height="65" width="160" x="60" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="psnr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C5E1A5;strokeColor=#558B2F;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;utility.calc_psnr()&lt;/b&gt;&lt;br&gt;Quality Metrics&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• PSNR calculation&lt;br&gt;• RGB range scaling&lt;br&gt;• Dataset comparison" vertex="1">
+          <mxGeometry height="65" width="170" x="260" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="patch-amd" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;patch_amd.py&lt;/b&gt;&lt;br&gt;Visualization&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Parse training logs&lt;br&gt;• Plot Loss/PSNR curves&lt;br&gt;• Generate metrics graphs" vertex="1">
+          <mxGeometry height="65" width="180" x="470" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="results" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#DCEDC8;strokeColor=#689F38;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;Results&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• SR images&lt;br&gt;• PSNR metrics&lt;br&gt;• Training graphs" vertex="1">
+          <mxGeometry height="65" width="140" x="690" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="checkpoint" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F8BBD0;strokeColor=#C2185B;fontSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;Checkpoint&lt;/b&gt;&lt;br&gt;━━━━━━━━━━━━━━━&lt;br&gt;• Model weights&lt;br&gt;• Training logs&lt;br&gt;• Best epoch" vertex="1">
+          <mxGeometry height="65" width="120" x="870" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4-1" edge="1" parent="1" source="test-module" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;" target="psnr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4-2" edge="1" parent="1" source="psnr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;" target="patch-amd">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4-3" edge="1" parent="1" source="patch-amd" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;" target="results">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4-4" edge="1" parent="1" source="checkpoint" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#E65100;dashed=1;" target="test-module">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="930" y="560" />
+              <mxPoint x="140" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-v1" edge="1" parent="1" source="div2k" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#1976D2;dashed=1;" target="dataloader">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="210" />
+              <mxPoint x="1050" y="210" />
+              <mxPoint x="1050" y="530" />
+              <mxPoint x="130" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-v1-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2" value="Data Flow" vertex="1">
+          <mxGeometry height="20" width="70" x="1060" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-v2" edge="1" parent="1" source="amd-gpu" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#C62828;dashed=1;" target="trainer">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="330" />
+              <mxPoint x="20" y="330" />
+              <mxPoint x="20" y="448" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-v2-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2" value="GPU Compute" vertex="1">
+          <mxGeometry height="20" width="90" x="40" y="365" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-v3" edge="1" parent="1" source="trainer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#558B2F;dashed=1;" target="test-module">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-v3-label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2" value="Trained Model" vertex="1">
+          <mxGeometry height="20" width="90" x="240" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#424242;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="80" width="1090" x="40" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1" value="Легенда:" vertex="1">
+          <mxGeometry height="30" width="80" x="50" y="685" as="geometry" />
+        </mxCell>
+        <mxCell id="legend1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;fontSize=9;" value="Модуль обработки данных" vertex="1">
+          <mxGeometry height="30" width="140" x="60" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="legend2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCDD2;strokeColor=#B71C1C;fontSize=9;" value="Аппаратное ускорение" vertex="1">
+          <mxGeometry height="30" width="140" x="220" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="legend3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#1B5E20;fontSize=9;" value="Ядро обучения" vertex="1">
+          <mxGeometry height="30" width="140" x="380" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="legend4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#0D47A1;fontSize=9;" value="Нейронная сеть" vertex="1">
+          <mxGeometry height="30" width="140" x="540" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="legend5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFCCBC;strokeColor=#BF360C;fontSize=9;" value="Функция потерь" vertex="1">
+          <mxGeometry height="30" width="140" x="700" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="legend6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00695C;fontSize=9;" value="Визуализация/Результаты" vertex="1">
+          <mxGeometry height="30" width="140" x="860" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="footer" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#757575" value="Система Super-Resolution для спутниковых изображений UC Merced Dataset | EDSR-PyTorch + torch-directml (AMD GPU)" vertex="1">
+          <mxGeometry height="30" width="600" x="284.5" y="770" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

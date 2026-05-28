@@ -1,0 +1,256 @@
+import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TrendingUp, Activity, Zap, Target } from 'lucide-react';
+
+const trainingData = [
+  { epoch: 0, loss: 0.85, psnr: 28.5, ssim: 0.82 },
+  { epoch: 10, loss: 0.62, psnr: 30.2, ssim: 0.86 },
+  { epoch: 20, loss: 0.48, psnr: 31.8, ssim: 0.89 },
+  { epoch: 30, loss: 0.38, psnr: 33.1, ssim: 0.91 },
+  { epoch: 40, loss: 0.31, psnr: 34.2, ssim: 0.93 },
+  { epoch: 50, loss: 0.26, psnr: 35.0, ssim: 0.94 },
+  { epoch: 60, loss: 0.22, psnr: 35.6, ssim: 0.95 },
+  { epoch: 70, loss: 0.19, psnr: 36.1, ssim: 0.96 },
+  { epoch: 80, loss: 0.17, psnr: 36.5, ssim: 0.96 },
+  { epoch: 90, loss: 0.15, psnr: 36.8, ssim: 0.97 },
+  { epoch: 100, loss: 0.14, psnr: 37.1, ssim: 0.97 },
+];
+
+const performanceData = [
+  { dataset: 'Hubble', accuracy: 94.2, time: 2.3 },
+  { dataset: 'Webb', accuracy: 96.5, time: 2.8 },
+  { dataset: 'Mars', accuracy: 91.8, time: 1.9 },
+  { dataset: 'ISS', accuracy: 93.1, time: 2.1 },
+  { dataset: 'Nebula', accuracy: 95.7, time: 2.6 },
+  { dataset: 'Galaxy', accuracy: 92.4, time: 2.4 },
+];
+
+const processingTimeData = [
+  { resolution: '512x512', time: 0.8 },
+  { resolution: '1024x1024', time: 1.9 },
+  { resolution: '2048x2048', time: 4.2 },
+  { resolution: '4096x4096', time: 9.5 },
+];
+
+export function StatisticsTab() {
+  return (
+    <div className="space-y-6 h-full overflow-auto pb-6">
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <div className="text-xs text-slate-400">Средний PSNR</div>
+              <div className="text-2xl font-semibold text-blue-300">37.1 dB</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 border border-green-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+              <Target className="w-5 h-5 text-green-400" />
+            </div>
+            <div>
+              <div className="text-xs text-slate-400">Точность SSIM</div>
+              <div className="text-2xl font-semibold text-green-300">0.97</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <Activity className="w-5 h-5 text-purple-400" />
+            </div>
+            <div>
+              <div className="text-xs text-slate-400">Обработано</div>
+              <div className="text-2xl font-semibold text-purple-300">14,100</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border border-orange-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+              <Zap className="w-5 h-5 text-orange-400" />
+            </div>
+            <div>
+              <div className="text-xs text-slate-400">Среднее время</div>
+              <div className="text-2xl font-semibold text-orange-300">2.3s</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Training Progress Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Loss Chart */}
+        <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+          <h3 className="text-lg font-medium mb-4">Динамика Loss</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={trainingData}>
+              <defs>
+                <linearGradient id="lossGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="epoch" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #475569',
+                  borderRadius: '8px',
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="loss"
+                stroke="#ef4444"
+                strokeWidth={2}
+                fill="url(#lossGradient)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* PSNR Chart */}
+        <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+          <h3 className="text-lg font-medium mb-4">Динамика PSNR</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trainingData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="epoch" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" domain={[25, 40]} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #475569',
+                  borderRadius: '8px',
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="psnr"
+                stroke="#3b82f6"
+                strokeWidth={3}
+                dot={{ fill: '#3b82f6', r: 4 }}
+                name="PSNR (dB)"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* SSIM Chart */}
+        <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+          <h3 className="text-lg font-medium mb-4">Индекс структурного сходства (SSIM)</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={trainingData}>
+              <defs>
+                <linearGradient id="ssimGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="epoch" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" domain={[0.8, 1]} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #475569',
+                  borderRadius: '8px',
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="ssim"
+                stroke="#10b981"
+                strokeWidth={2}
+                fill="url(#ssimGradient)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Performance by Dataset */}
+        <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+          <h3 className="text-lg font-medium mb-4">Производительность по наборам данных</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={performanceData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="dataset" stroke="#94a3b8" />
+              <YAxis stroke="#94a3b8" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #475569',
+                  borderRadius: '8px',
+                }}
+              />
+              <Legend />
+              <Bar dataKey="accuracy" fill="#8b5cf6" name="Точность (%)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Processing Time */}
+      <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+        <h3 className="text-lg font-medium mb-4">Время обработки по разрешению</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={processingTimeData} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <XAxis type="number" stroke="#94a3b8" />
+            <YAxis type="category" dataKey="resolution" stroke="#94a3b8" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#1e293b',
+                border: '1px solid #475569',
+                borderRadius: '8px',
+              }}
+            />
+            <Bar dataKey="time" fill="#f59e0b" name="Время (сек)" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Summary Table */}
+      <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+        <h3 className="text-lg font-medium mb-4">Сводная статистика</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-700">
+                <th className="text-left py-3 px-4 text-slate-400 font-medium">Набор данных</th>
+                <th className="text-right py-3 px-4 text-slate-400 font-medium">Точность (%)</th>
+                <th className="text-right py-3 px-4 text-slate-400 font-medium">Время (с)</th>
+                <th className="text-right py-3 px-4 text-slate-400 font-medium">Изображений</th>
+              </tr>
+            </thead>
+            <tbody>
+              {performanceData.map((item, idx) => (
+                <tr key={idx} className="border-b border-slate-700/50 hover:bg-slate-700/30">
+                  <td className="py-3 px-4 text-slate-200">{item.dataset}</td>
+                  <td className="py-3 px-4 text-right">
+                    <span className="text-green-400 font-medium">{item.accuracy}</span>
+                  </td>
+                  <td className="py-3 px-4 text-right text-slate-300">{item.time}</td>
+                  <td className="py-3 px-4 text-right text-slate-300">
+                    {(Math.random() * 3000 + 1500).toFixed(0)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
