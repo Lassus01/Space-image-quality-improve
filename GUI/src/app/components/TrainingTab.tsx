@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, LinearProgress } from '@mui/material';
 import { Database, Play, Pause, RotateCcw, FolderOpen } from 'lucide-react';
 
@@ -25,9 +25,48 @@ export function TrainingTab() {
   const [isPaused, setIsPaused] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [currentEpoch, setCurrentEpoch] = useState(0);
-  const [totalEpochs] = useState(100);
+  const [totalEpochs, setTotalEpochs] = useState(100);
   const [learningRate, setLearningRate] = useState(0.0001);
   const [batchSize, setBatchSize] = useState(16);
+  const [datasetPath, setDatasetPath] = useState("./images");
+  const [latestLoss, setLatestLoss] = useState(0.0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isTraining) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch('http://localhost:8000/api/training_status');
+          const data = await res.json();
+          setIsTraining(data.is_running);
+          setCurrentEpoch(data.current_epoch);
+          if (data.total_epochs > 0) {
+              setTrainingProgress((data.current_epoch / data.total_epochs) * 100);
+          }
+          setLatestLoss(data.latest_loss);
+        } catch (e) {
+          console.error('Error fetching training status', e);
+        }
+      }, 2000);
+    }
+    return () => clearInterval(interval);
+  }, [isTraining]);
+
+  const prepareDataset = async () => {
+    try {
+        const res = await fetch('http://localhost:8000/api/prepare_dataset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input_directories: [datasetPath] })
+        });
+        const data = await res.json();
+        console.log(data);
+        alert(data.message);
+    } catch(e) {
+        console.error(e);
+        alert('Failed to prepare dataset');
+    }
+  }
 
   const toggleDataset = (id: string) => {
     setSelectedDatasets((prev) =>
@@ -35,27 +74,26 @@ export function TrainingTab() {
     );
   };
 
-  const startTraining = () => {
-    setIsTraining(true);
-    setIsPaused(false);
-    setCurrentEpoch(0);
-    setTrainingProgress(0);
-
-    // Simulate training progress
-    const interval = setInterval(() => {
-      setCurrentEpoch((prev) => {
-        if (prev >= totalEpochs - 1) {
-          clearInterval(interval);
-          setIsTraining(false);
-          return totalEpochs;
+  const startTraining = async () => {
+    try {
+        const res = await fetch('http://localhost:8000/api/train', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ epochs: totalEpochs, learning_rate: learningRate, batch_size: batchSize })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            setIsTraining(true);
+            setIsPaused(false);
+            setCurrentEpoch(0);
+            setTrainingProgress(0);
+        } else {
+            alert(data.error);
         }
-        return prev + 1;
-      });
-      setTrainingProgress((prev) => {
-        const newProgress = prev + (100 / totalEpochs);
-        return newProgress > 100 ? 100 : newProgress;
-      });
-    }, 500);
+    } catch(e) {
+        console.error(e);
+        alert('Failed to start training');
+    }
   };
 
   const pauseTraining = () => {
@@ -65,26 +103,39 @@ export function TrainingTab() {
   const resetTraining = () => {
     setIsTraining(false);
     setIsPaused(false);
-    setTrainingProgress(0);
     setCurrentEpoch(0);
+    setTrainingProgress(0);
   };
 
   const selectedCount = selectedDatasets.length;
-  const totalImages = availableDatasets
-    .filter((d) => selectedDatasets.includes(d.id))
-    .reduce((sum, d) => sum + d.images, 0);
+  const totalImages = selectedDatasets.reduce((acc, id) => {
+    const ds = availableDatasets.find((d) => d.id === id);
+    return acc + (ds?.images || 0);
+  }, 0);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 h-full">
-      {/* Left Panel - Dataset Selection */}
-      <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6 h-full">
+      {/* Left Panel - Configuration */}
+      <div className="space-y-6 overflow-auto pb-6 pr-2">
+        {/* Dataset Selection */}
         <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium">Выбор обучающих выборок</h2>
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-              <Database className="w-4 h-4" />
-              <span>{selectedCount} выбрано</span>
-            </div>
+            <h2 className="text-lg font-medium flex items-center gap-2">
+              <Database className="w-5 h-5 text-blue-400" />
+              Наборы данных
+            </h2>
+            <span className="text-sm text-slate-400">Выбрано: {selectedCount}</span>
+          </div>
+
+          <div className="mb-4">
+            <label className="text-sm text-slate-300 mb-2 block">Путь к датасету</label>
+            <input
+              type="text"
+              value={datasetPath}
+              onChange={(e) => setDatasetPath(e.target.value)}
+              disabled={isTraining}
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 disabled:opacity-50"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -178,8 +229,9 @@ export function TrainingTab() {
               <input
                 type="number"
                 value={totalEpochs}
-                disabled
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-400"
+                onChange={(e) => setTotalEpochs(parseInt(e.target.value))}
+                disabled={isTraining}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 disabled:opacity-50"
               />
             </div>
 
@@ -245,15 +297,7 @@ export function TrainingTab() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Loss:</span>
-                  <span className="text-slate-200">{(Math.random() * 0.1).toFixed(4)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">PSNR:</span>
-                  <span className="text-slate-200">{(30 + Math.random() * 5).toFixed(2)} dB</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Время на эпоху:</span>
-                  <span className="text-slate-200">~{Math.floor(Math.random() * 30 + 10)}s</span>
+                  <span className="text-slate-200">{latestLoss.toFixed(4)}</span>
                 </div>
               </div>
             </div>
@@ -268,6 +312,24 @@ export function TrainingTab() {
 
         {/* Control Buttons */}
         <div className="space-y-3">
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={prepareDataset}
+            disabled={isTraining}
+            sx={{
+              bgcolor: '#10b981',
+              '&:hover': { bgcolor: '#059669' },
+              py: 1.5,
+              textTransform: 'none',
+              fontSize: '1rem',
+              mb: 2
+            }}
+            startIcon={<Database />}
+          >
+            Подготовить данные
+          </Button>
+
           {!isTraining ? (
             <Button
               variant="contained"

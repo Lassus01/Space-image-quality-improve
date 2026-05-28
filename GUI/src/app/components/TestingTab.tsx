@@ -1,62 +1,67 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ImageUploadZone } from './ImageUploadZone';
 import { ImageComparison } from './ImageComparison';
 import { Download, Sparkles } from 'lucide-react';
-import { Button } from '@mui/material';
+import { Button, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 
 export function TestingTab() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [enhancedImage, setEnhancedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [models, setModels] = useState<{id: string, name: string}[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/models')
+        .then(res => res.json())
+        .then(data => {
+            if (data.models && data.models.length > 0) {
+                setModels(data.models);
+                setSelectedModel(data.models[0].id);
+            }
+        })
+        .catch(err => console.error(err));
+  }, []);
 
   const handleImageSelect = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       setOriginalImage(e.target?.result as string);
+      setOriginalFile(file);
       setEnhancedImage(null);
     };
     reader.readAsDataURL(file);
   }, []);
 
-  const handleEnhance = useCallback(() => {
-    if (!originalImage) return;
+  const handleEnhance = useCallback(async () => {
+    if (!originalFile || !selectedModel) return;
 
     setIsProcessing(true);
     setEnhancedImage(null);
 
-    // Simulate neural network processing
-    setTimeout(() => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+    const formData = new FormData();
+    formData.append('model_id', selectedModel);
+    formData.append('file', originalFile);
 
-        const upscaleFactor = 2;
-        canvas.width = img.width * upscaleFactor;
-        canvas.height = img.height * upscaleFactor;
-
-        ctx.filter = 'contrast(1.3) brightness(1.1) saturate(1.2)';
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-
-        const denoisingStrength = 0.7;
-        for (let i = 0; i < data.length; i += 4) {
-          data[i] = data[i] * (1 - denoisingStrength * 0.1) + 128 * denoisingStrength * 0.1;
-          data[i + 1] = data[i + 1] * (1 - denoisingStrength * 0.1) + 128 * denoisingStrength * 0.1;
-          data[i + 2] = data[i + 2] * (1 - denoisingStrength * 0.1) + 128 * denoisingStrength * 0.1;
+    try {
+        const res = await fetch('http://localhost:8000/api/enhance', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.image_base64) {
+            setEnhancedImage(data.image_base64);
+        } else {
+            alert(data.error || 'Failed to enhance image');
         }
-
-        ctx.putImageData(imageData, 0, 0);
-
-        setEnhancedImage(canvas.toDataURL());
+    } catch(e) {
+        console.error(e);
+        alert('Error communicating with backend');
+    } finally {
         setIsProcessing(false);
-      };
-      img.src = originalImage;
-    }, 2500);
-  }, [originalImage]);
+    }
+  }, [originalFile, selectedModel]);
 
   const handleDownload = useCallback(() => {
     if (!enhancedImage) return;
@@ -85,6 +90,26 @@ export function TestingTab() {
         {/* Action Buttons */}
         {originalImage && (
           <div className="space-y-3">
+            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+              <InputLabel id="model-select-label" sx={{ color: '#94a3b8' }}>Выберите модель</InputLabel>
+              <Select
+                labelId="model-select-label"
+                value={selectedModel}
+                label="Выберите модель"
+                onChange={(e) => setSelectedModel(e.target.value)}
+                sx={{
+                  color: 'white',
+                  '.MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#3b82f6' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#64748b' }
+                }}
+              >
+                {models.map((m) => (
+                    <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <Button
               variant="contained"
               fullWidth
