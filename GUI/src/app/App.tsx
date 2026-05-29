@@ -77,15 +77,15 @@ export default function App() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        <div className="h-[calc(100vh-180px)]">
-          <Box hidden={activeTab !== 0}>
+      <div className="container mx-auto px-6 py-8 mb-16 h-full">
+        <div className="h-full">
+          <Box hidden={activeTab !== 0} className="h-full">
             {activeTab === 0 && <TrainingTab />}
           </Box>
-          <Box hidden={activeTab !== 1}>
+          <Box hidden={activeTab !== 1} className="h-full">
             {activeTab === 1 && <StatisticsTab />}
           </Box>
-          <Box hidden={activeTab !== 2}>
+          <Box hidden={activeTab !== 2} className="h-full">
             {activeTab === 2 && <TestingTab />}
           </Box>
         </div>
