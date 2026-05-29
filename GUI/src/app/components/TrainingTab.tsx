@@ -10,17 +10,9 @@ interface Dataset {
   type: 'space' | 'satellite' | 'telescope';
 }
 
-const availableDatasets: Dataset[] = [
-  { id: 'hubble', name: 'Hubble Deep Field', images: 2500, size: '15.3 GB', type: 'telescope' },
-  { id: 'webb', name: 'James Webb Space Telescope', images: 1800, size: '22.1 GB', type: 'telescope' },
-  { id: 'mars', name: 'Mars Rover Images', images: 5000, size: '8.7 GB', type: 'satellite' },
-  { id: 'iss', name: 'ISS Earth Observation', images: 3200, size: '12.4 GB', type: 'satellite' },
-  { id: 'nebula', name: 'Nebula Collection', images: 1500, size: '18.9 GB', type: 'space' },
-  { id: 'galaxy', name: 'Galaxy Survey', images: 4100, size: '25.6 GB', type: 'space' },
-];
-
 export function TrainingTab() {
-  const [selectedDatasets, setSelectedDatasets] = useState<string[]>(['hubble']);
+  const [availableDatasets, setAvailableDatasets] = useState<Dataset[]>([]);
+  const [selectedDatasets, setSelectedDatasets] = useState<string[]>([]);
   const [isTraining, setIsTraining] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState(0);
@@ -28,8 +20,38 @@ export function TrainingTab() {
   const [totalEpochs, setTotalEpochs] = useState(100);
   const [learningRate, setLearningRate] = useState(0.0001);
   const [batchSize, setBatchSize] = useState(16);
-  const [datasetPath, setDatasetPath] = useState("./images");
+  const [datasetPath, setDatasetPath] = useState("");
   const [latestLoss, setLatestLoss] = useState(0.0);
+  const [blurKernel, setBlurKernel] = useState(1.5);
+  const [noiseStd, setNoiseStd] = useState(5.0);
+  const [scale, setScale] = useState(2);
+
+  const fetchDatasets = () => {
+    fetch('http://localhost:8000/api/datasets')
+      .then(res => res.json())
+      .then(data => {
+        if (data.datasets && data.datasets.length > 0) {
+          const mappedDatasets = data.datasets.map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            images: 0,
+            size: 'Unknown',
+            type: 'space'
+          }));
+          setAvailableDatasets(mappedDatasets);
+          if (mappedDatasets.length > 0) {
+              setSelectedDatasets([mappedDatasets[0].id]);
+          }
+        } else {
+            setAvailableDatasets([]);
+        }
+      })
+      .catch(err => console.error("Error fetching datasets:", err));
+  };
+
+  useEffect(() => {
+    fetchDatasets();
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -53,15 +75,25 @@ export function TrainingTab() {
   }, [isTraining]);
 
   const prepareDataset = async () => {
+    if (!datasetPath) {
+      alert("Пожалуйста, укажите абсолютный путь к сырым изображениям.");
+      return;
+    }
     try {
         const res = await fetch('http://localhost:8000/api/prepare_dataset', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input_directories: [datasetPath] })
+            body: JSON.stringify({
+                input_directories: [datasetPath],
+                blur_kernel: blurKernel,
+                noise_std: noiseStd,
+                scale: scale
+            })
         });
         const data = await res.json();
         console.log(data);
         alert(data.message);
+        fetchDatasets();
     } catch(e) {
         console.error(e);
         alert('Failed to prepare dataset');
@@ -117,6 +149,88 @@ export function TrainingTab() {
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6 h-full">
       {/* Left Panel - Configuration */}
       <div className="space-y-6 overflow-auto pb-6 pr-2">
+        {/* Data Preparation */}
+        <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 mb-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium flex items-center gap-2">
+              <Database className="w-5 h-5 text-blue-400" />
+              Подготовка данных
+            </h2>
+          </div>
+
+          <div className="mb-4">
+            <label className="text-sm text-slate-300 mb-2 block">Абсолютный путь к сырым изображениям</label>
+            <input
+              type="text"
+              value={datasetPath}
+              onChange={(e) => setDatasetPath(e.target.value)}
+              disabled={isTraining}
+              placeholder="/path/to/raw/images"
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 disabled:opacity-50"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="text-sm text-slate-300 mb-2 block">Размытие (Kernel)</label>
+              <input
+                type="number"
+                value={blurKernel}
+                onChange={(e) => setBlurKernel(parseFloat(e.target.value))}
+                step="0.1"
+                min="0"
+                disabled={isTraining}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-slate-300 mb-2 block">Шум (Std)</label>
+              <input
+                type="number"
+                value={noiseStd}
+                onChange={(e) => setNoiseStd(parseFloat(e.target.value))}
+                step="0.5"
+                min="0"
+                disabled={isTraining}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-slate-300 mb-2 block">Масштаб (Scale)</label>
+              <select
+                value={scale}
+                onChange={(e) => setScale(parseInt(e.target.value))}
+                disabled={isTraining}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 disabled:opacity-50"
+              >
+                <option value={2}>2x</option>
+                <option value={3}>3x</option>
+                <option value={4}>4x</option>
+              </select>
+            </div>
+          </div>
+
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={prepareDataset}
+            disabled={isTraining}
+            sx={{
+              borderColor: '#10b981',
+              color: '#10b981',
+              '&:hover': {
+                borderColor: '#059669',
+                bgcolor: '#10b98110',
+              },
+              py: 1.5,
+              textTransform: 'none',
+              fontSize: '1rem',
+            }}
+          >
+            Запустить генерацию
+          </Button>
+        </div>
+
         {/* Dataset Selection */}
         <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
           <div className="flex items-center justify-between mb-4">
@@ -127,56 +241,53 @@ export function TrainingTab() {
             <span className="text-sm text-slate-400">Выбрано: {selectedCount}</span>
           </div>
 
-          <div className="mb-4">
-            <label className="text-sm text-slate-300 mb-2 block">Путь к датасету</label>
-            <input
-              type="text"
-              value={datasetPath}
-              onChange={(e) => setDatasetPath(e.target.value)}
-              disabled={isTraining}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 disabled:opacity-50"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {availableDatasets.map((dataset) => {
-              const isSelected = selectedDatasets.includes(dataset.id);
-              return (
-                <button
-                  key={dataset.id}
-                  onClick={() => !isTraining && toggleDataset(dataset.id)}
-                  disabled={isTraining}
-                  className={`p-4 rounded-lg border-2 transition-all text-left ${
-                    isSelected
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
-                  } ${isTraining ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className={`font-medium ${isSelected ? 'text-blue-300' : 'text-slate-200'}`}>
-                      {dataset.name}
+          {availableDatasets.length === 0 ? (
+            <div className="text-center py-6 text-slate-400">
+              <FolderOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>Доступные датасеты не найдены.</p>
+              <p className="text-sm">Пожалуйста, подготовьте данные.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {availableDatasets.map((dataset) => {
+                const isSelected = selectedDatasets.includes(dataset.id);
+                return (
+                  <button
+                    key={dataset.id}
+                    onClick={() => !isTraining && toggleDataset(dataset.id)}
+                    disabled={isTraining}
+                    className={`p-4 rounded-lg border-2 transition-all text-left ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-500/10'
+                        : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                    } ${isTraining ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className={`font-medium ${isSelected ? 'text-blue-300' : 'text-slate-200'}`}>
+                        {dataset.name}
+                      </div>
+                      <div
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                          isSelected ? 'bg-blue-500 border-blue-500' : 'border-slate-600'
+                        }`}
+                      >
+                        {isSelected && (
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
                     </div>
-                    <div
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                        isSelected ? 'bg-blue-500 border-blue-500' : 'border-slate-600'
-                      }`}
-                    >
-                      {isSelected && (
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
+                    <div className="text-xs text-slate-400 space-y-1">
+                      <div>Изображений: {dataset.images.toLocaleString()}</div>
+                      <div>Размер: {dataset.size}</div>
+                      <div className="capitalize">Тип: {dataset.type}</div>
                     </div>
-                  </div>
-                  <div className="text-xs text-slate-400 space-y-1">
-                    <div>Изображений: {dataset.images.toLocaleString()}</div>
-                    <div>Размер: {dataset.size}</div>
-                    <div className="capitalize">Тип: {dataset.type}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <div className="mt-4 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
             <div className="text-sm text-slate-300">
@@ -312,24 +423,6 @@ export function TrainingTab() {
 
         {/* Control Buttons */}
         <div className="space-y-3">
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={prepareDataset}
-            disabled={isTraining}
-            sx={{
-              bgcolor: '#10b981',
-              '&:hover': { bgcolor: '#059669' },
-              py: 1.5,
-              textTransform: 'none',
-              fontSize: '1rem',
-              mb: 2
-            }}
-            startIcon={<Database />}
-          >
-            Подготовить данные
-          </Button>
-
           {!isTraining ? (
             <Button
               variant="contained"
