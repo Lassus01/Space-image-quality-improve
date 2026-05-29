@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Activity, Zap, Target } from 'lucide-react';
+import { Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 
 const performanceData = [
   { dataset: 'Hubble', accuracy: 94.2, time: 2.3 },
@@ -21,10 +22,38 @@ const processingTimeData = [
 export function StatisticsTab() {
   const [plotImage, setPlotImage] = useState<string | null>(null);
   const [trainingData, setTrainingData] = useState<any[]>([]);
+  const [experiments, setExperiments] = useState<string[]>([]);
+  const [selectedExperiment, setSelectedExperiment] = useState<string>('');
 
   useEffect(() => {
+    // Fetch experiments
+    fetch('http://localhost:8000/api/models')
+      .then(res => res.json())
+      .then(data => {
+        if (data.models && data.models.length > 0) {
+          // Extract experiment names (first directory in id)
+          const exps = new Set<string>();
+          data.models.forEach((m: any) => {
+             const parts = m.id.split('/');
+             if (parts.length > 0) {
+                 exps.add(parts[0]);
+             }
+          });
+          const expList = Array.from(exps);
+          setExperiments(expList);
+          if (expList.length > 0) {
+            setSelectedExperiment(expList[0]);
+          }
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedExperiment) return;
+
     // Fetch JSON metrics
-    fetch('http://localhost:8000/api/metrics')
+    fetch(`http://localhost:8000/api/metrics?experiment_name=${selectedExperiment}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.epochs) {
@@ -34,23 +63,52 @@ export function StatisticsTab() {
             psnr: data.psnrs[i]
           }));
           setTrainingData(newData);
+        } else {
+            setTrainingData([]);
         }
       })
       .catch((err) => console.error(err));
 
     // Fetch generated plot
-    fetch('http://localhost:8000/api/generate_plot')
+    fetch(`http://localhost:8000/api/generate_plot?experiment_name=${selectedExperiment}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.image_base64) {
           setPlotImage(`data:image/png;base64,${data.image_base64}`);
+        } else {
+            setPlotImage(null);
         }
       })
-      .catch((err) => console.error(err));
-  }, []);
+      .catch((err) => {
+          console.error(err);
+          setPlotImage(null);
+      });
+  }, [selectedExperiment]);
 
   return (
     <div className="space-y-6 h-full overflow-auto pb-6">
+      <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
+        <FormControl fullWidth size="small">
+            <InputLabel id="experiment-select-label" sx={{ color: '#94a3b8' }}>Выберите эксперимент</InputLabel>
+            <Select
+              labelId="experiment-select-label"
+              value={selectedExperiment}
+              label="Выберите эксперимент"
+              onChange={(e) => setSelectedExperiment(e.target.value)}
+              sx={{
+                color: 'white',
+                '.MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#3b82f6' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#64748b' }
+              }}
+            >
+              {experiments.map((exp) => (
+                  <MenuItem key={exp} value={exp}>{exp}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+      </div>
+
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 rounded-lg p-4">

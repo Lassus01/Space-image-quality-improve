@@ -60,13 +60,32 @@ from typing import List
 
 class PrepareDatasetRequest(BaseModel):
     input_directories: List[str]
+    blur_kernel: float
+    noise_std: float
+    scale: int
 
 @app.post("/api/prepare_dataset")
 def prepare_dataset(req: PrepareDatasetRequest):
     import advanced_degradation
     target_dir = os.path.join(os.getcwd(), "EDSR-PyTorch", "src", "dataset", "DIV2K")
-    count = advanced_degradation.prepare_advanced_dataset(req.input_directories, target_dir, scale=2)
+    count = advanced_degradation.prepare_advanced_dataset(
+        req.input_directories,
+        target_dir,
+        scale=req.scale,
+        blur_kernel=req.blur_kernel,
+        noise_std=req.noise_std
+    )
     return {"message": f"Dataset prepared. {count} images processed.", "count": count}
+
+@app.get("/api/datasets")
+def list_datasets():
+    dataset_dir = os.path.join(os.getcwd(), "EDSR-PyTorch", "src", "dataset")
+    datasets = []
+    if os.path.exists(dataset_dir):
+        for entry in os.listdir(dataset_dir):
+            if os.path.isdir(os.path.join(dataset_dir, entry)):
+                datasets.append({"id": entry, "name": entry})
+    return {"datasets": datasets}
 
 class TrainRequest(BaseModel):
     epochs: int
@@ -151,8 +170,8 @@ def get_training_status():
     return training_state
 
 @app.get("/api/metrics")
-def get_metrics():
-    log_file_path = os.path.join(os.getcwd(), "EDSR-PyTorch", "experiment", "test", "log.txt")
+def get_metrics(experiment_name: str = "test"):
+    log_file_path = os.path.join(os.getcwd(), "EDSR-PyTorch", "experiment", experiment_name, "log.txt")
     epochs = []
     losses = []
     psnrs = []
@@ -178,8 +197,8 @@ def get_metrics():
     return {"epochs": epochs, "losses": losses, "psnrs": psnrs}
 
 @app.get("/api/generate_plot")
-def generate_plot():
-    metrics = get_metrics()
+def generate_plot(experiment_name: str = "test"):
+    metrics = get_metrics(experiment_name)
     epochs = metrics["epochs"]
     losses = metrics["losses"]
     psnrs = metrics["psnrs"]
